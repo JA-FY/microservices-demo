@@ -19,6 +19,9 @@ import (
 	"flag"
 	"fmt"
 	"net"
+	"net/http"
+  "github.com/prometheus/client_golang/prometheus/promhttp"
+  "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"os"
 	"os/signal"
 	"sync"
@@ -81,6 +84,19 @@ func main() {
 		log.Info("Profiling disabled.")
 	}
 
+	go func() {
+		metricsPort := os.Getenv("PROFILER_PORT")
+		if metricsPort == "" {
+			metricsPort = "9090"
+		}
+
+		log.Infof("starting metrics server at :%s", metricsPort)
+		http.Handle("/metrics", promhttp.Handler())
+		if err := http.ListenAndServe(":"+metricsPort, nil); err != nil {
+			log.Fatalf("failed to start metrics server: %v", err)
+		}
+	}()
+
 	flag.Parse()
 
 	// set injected latency
@@ -130,9 +146,22 @@ func run(port string) string {
 		propagation.NewCompositeTextMapPropagator(
 			propagation.TraceContext{}, propagation.Baggage{}))
 	var srv *grpc.Server
-	srv = grpc.NewServer(
-		grpc.UnaryInterceptor(otelgrpc.UnaryServerInterceptor()),
-		grpc.StreamInterceptor(otelgrpc.StreamServerInterceptor()))
+//	srv = grpc.NewServer(
+//		grpc.UnaryInterceptor(otelgrpc.UnaryServerInterceptor()),
+//		grpc.StreamInterceptor(otelgrpc.StreamServerInterceptor()))
+//
+   srv = grpc.NewServer(
+    grpc.ChainUnaryInterceptor(
+        otelgrpc.UnaryServerInterceptor(),
+        grpc_prometheus.UnaryServerInterceptor,
+    ),
+    grpc.ChainStreamInterceptor(
+        otelgrpc.StreamServerInterceptor(),
+        grpc_prometheus.StreamServerInterceptor,
+    ),
+)
+
+  grpc_prometheus.Register(srv)
 
 	svc := &productCatalog{}
 	err = loadCatalog(&svc.catalog)
