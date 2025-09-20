@@ -32,6 +32,7 @@ spec:
     metadata:
       labels:
         app: emailservice
+
     spec:
       serviceAccountName: emailservice
       terminationGracePeriodSeconds: 5
@@ -107,6 +108,9 @@ spec:
     metadata:
       labels:
         app: checkoutservice
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "5050"
     spec:
       serviceAccountName: checkoutservice
       securityContext:
@@ -189,6 +193,9 @@ spec:
     metadata:
       labels:
         app: recommendationservice
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
     spec:
       serviceAccountName: recommendationservice
       terminationGracePeriodSeconds: 5
@@ -394,6 +401,9 @@ spec:
     metadata:
       labels:
         app: paymentservice
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "50051"
     spec:
       serviceAccountName: paymentservice
       terminationGracePeriodSeconds: 5
@@ -459,6 +469,10 @@ metadata:
   name: productcatalogservice
   labels:
     app: productcatalogservice
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+    prometheus.io/path: "/metrics"
 spec:
   selector:
     matchLabels:
@@ -487,11 +501,20 @@ spec:
         image: us-central1-docker.pkg.dev/google-samples/microservices-demo/productcatalogservice:v0.10.3
         ports:
         - containerPort: 3550
+          name: grpc
+        - containerPort: 9090
+          name: http-metrics
         env:
         - name: PORT
           value: "3550"
         - name: DISABLE_PROFILER
           value: "1"
+        - name: PROFILER_PORT
+          value: "9090"
+        - name: DISABLE_TRACING
+          value: "1"
+        - name: PROFILER_ENABLED
+          value: "false"
         readinessProbe:
           grpc:
             port: 3550
@@ -520,6 +543,9 @@ spec:
   - name: grpc
     port: 3550
     targetPort: 3550
+  - name: http-metrics
+    port: 9090
+    targetPort: 9090
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -540,6 +566,9 @@ spec:
     metadata:
       labels:
         app: cartservice
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "7070"
     spec:
       serviceAccountName: cartservice
       terminationGracePeriodSeconds: 5
@@ -770,6 +799,9 @@ spec:
     metadata:
       labels:
         app: currencyservice
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "7000"
     spec:
       serviceAccountName: currencyservice
       terminationGracePeriodSeconds: 5
@@ -844,6 +876,9 @@ spec:
     metadata:
       labels:
         app: shippingservice
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "50051"
     spec:
       serviceAccountName: shippingservice
       securityContext:
