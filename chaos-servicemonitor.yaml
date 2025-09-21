@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: chaos-mesh-monitor
+  namespace: monitoring
+  labels:
+    release: prometheus
+spec:
+  namespaceSelector:
+    matchNames:
+      - chaos-mesh
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: chaos-dashboard
+      app.kubernetes.io/instance: chaos-mesh
+  endpoints:
+  - port: metric
+    path: /metrics
+    interval: 15s

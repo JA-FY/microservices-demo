@@ -1,0 +1,12 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: recommendation-pod-failure-simple
+  namespace: default
+spec:
+  selector:
+    labelSelectors:
+      app: recommendationservice
+  mode: one
+  action: pod-kill
+  duration: '5m'
