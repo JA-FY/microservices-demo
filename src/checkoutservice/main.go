@@ -18,6 +18,9 @@ import (
 	"context"
 	"fmt"
 	"net"
+  "net/http"
+  "github.com/grpc-ecosystem/go-grpc-prometheus"
+  "github.com/prometheus/client_golang/prometheus/promhttp"
 	"os"
 	"time"
 
@@ -100,6 +103,18 @@ func main() {
 		log.Info("Profiling disabled.")
 	}
 
+	go func() {
+        metricsPort := os.Getenv("PROFILER_PORT")
+        if metricsPort == "" {
+            metricsPort = "9090"
+        }
+        log.Infof("starting metrics server at :%s", metricsPort)
+        http.Handle("/metrics", promhttp.Handler())
+        if err := http.ListenAndServe(":"+metricsPort, nil); err != nil {
+            log.Fatalf("failed to start metrics server: %v", err)
+        }
+    }()
+
 	port := listenPort
 	if os.Getenv("PORT") != "" {
 		port = os.Getenv("PORT")
@@ -133,10 +148,23 @@ func main() {
 	otel.SetTextMapPropagator(
 		propagation.NewCompositeTextMapPropagator(
 			propagation.TraceContext{}, propagation.Baggage{}))
-	srv = grpc.NewServer(
-		grpc.UnaryInterceptor(otelgrpc.UnaryServerInterceptor()),
-		grpc.StreamInterceptor(otelgrpc.StreamServerInterceptor()),
-	)
+//	srv = grpc.NewServer(
+//		grpc.UnaryInterceptor(otelgrpc.UnaryServerInterceptor()),
+//		grpc.StreamInterceptor(otelgrpc.StreamServerInterceptor()),
+//	)
+
+   srv = grpc.NewServer(
+    grpc.ChainUnaryInterceptor(
+        otelgrpc.UnaryServerInterceptor(),
+        grpc_prometheus.UnaryServerInterceptor,
+    ),
+    grpc.ChainStreamInterceptor(
+        otelgrpc.StreamServerInterceptor(),
+        grpc_prometheus.StreamServerInterceptor,
+    ),
+)
+
+  grpc_prometheus.Register(srv)
 
 	pb.RegisterCheckoutServiceServer(srv, svc)
 	healthpb.RegisterHealthServer(srv, svc)

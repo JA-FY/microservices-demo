@@ -100,6 +100,10 @@ metadata:
   name: checkoutservice
   labels:
     app: checkoutservice
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+    prometheus.io/path: "/metrics"
 spec:
   selector:
     matchLabels:
@@ -108,63 +112,66 @@ spec:
     metadata:
       labels:
         app: checkoutservice
-      annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "5050"
     spec:
       serviceAccountName: checkoutservice
+      terminationGracePeriodSeconds: 5
       securityContext:
         fsGroup: 1000
         runAsGroup: 1000
         runAsNonRoot: true
         runAsUser: 1000
       containers:
-        - name: server
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
-            privileged: false
-            readOnlyRootFilesystem: true
-          image: us-central1-docker.pkg.dev/google-samples/microservices-demo/checkoutservice:v0.10.3
-          ports:
-          - containerPort: 5050
-            name: grpc
-          - containerPort: 9090
-            name: http-metrics
-          readinessProbe:
-            grpc:
-              port: 5050
-          livenessProbe:
-            grpc:
-              port: 5050
-          env:
-          - name: PORT
-            value: "5050"
-          - name: PROFILER_PORT
-            value: "9090"
-          - name: DISABLE_TRACING
-            value: "1"
-          - name: PRODUCT_CATALOG_SERVICE_ADDR
-            value: "productcatalogservice:3550"
-          - name: SHIPPING_SERVICE_ADDR
-            value: "shippingservice:50051"
-          - name: PAYMENT_SERVICE_ADDR
-            value: "paymentservice:50051"
-          - name: EMAIL_SERVICE_ADDR
-            value: "emailservice:5000"
-          - name: CURRENCY_SERVICE_ADDR
-            value: "currencyservice:7000"
-          - name: CART_SERVICE_ADDR
-            value: "cartservice:7070"
-          resources:
-            requests:
-              cpu: 100m
-              memory: 64Mi
-            limits:
-              cpu: 200m
-              memory: 128Mi
+      - name: server
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+          privileged: false
+          readOnlyRootFilesystem: true
+            #image: us-central1-docker.pkg.dev/google-samples/microservices-demo/checkoutservice:v0.10.3
+        image: local/checkoutservice:custom
+        ports:
+        - containerPort: 5050
+          name: grpc
+        - containerPort: 9090
+          name: http-metrics
+        env:
+        - name: PORT
+          value: "5050"
+        - name: DISABLE_PROFILER
+          value: "1"
+        - name: PROFILER_PORT
+          value: "9090"
+        - name: DISABLE_TRACING
+          value: "1"
+        - name: PROFILER_ENABLED
+          value: "false"
+        - name: PRODUCT_CATALOG_SERVICE_ADDR
+          value: "productcatalogservice:3550"
+        - name: SHIPPING_SERVICE_ADDR
+          value: "shippingservice:50051"
+        - name: PAYMENT_SERVICE_ADDR
+          value: "paymentservice:50051"
+        - name: EMAIL_SERVICE_ADDR
+          value: "emailservice:5000"
+        - name: CURRENCY_SERVICE_ADDR
+          value: "currencyservice:7000"
+        - name: CART_SERVICE_ADDR
+          value: "cartservice:7070"
+        readinessProbe:
+          grpc:
+            port: 5050
+        livenessProbe:
+          grpc:
+            port: 5050
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
 ---
 apiVersion: v1
 kind: Service
@@ -180,7 +187,7 @@ spec:
   - name: grpc
     port: 5050
     targetPort: 5050
-  - name:
+  - name: http-metrics
     port: 9090
     targetPort: 9090
 ---
@@ -195,6 +202,10 @@ metadata:
   name: recommendationservice
   labels:
     app: recommendationservice
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+    prometheus.io/path: "/metrics"
 spec:
   selector:
     matchLabels:
@@ -203,9 +214,6 @@ spec:
     metadata:
       labels:
         app: recommendationservice
-      annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "8080"
     spec:
       serviceAccountName: recommendationservice
       terminationGracePeriodSeconds: 5
@@ -223,9 +231,28 @@ spec:
               - ALL
           privileged: false
           readOnlyRootFilesystem: true
-        image: us-central1-docker.pkg.dev/google-samples/microservices-demo/recommendationservice:v0.10.3
+          #image: us-central1-docker.pkg.dev/google-samples/microservices-demo/recommendationservice:v0.10.3
+        image: local/recommendationservice:custom
         ports:
         - containerPort: 8080
+          name: grpc
+        - containerPort: 9090
+          name: http-metrics
+        env:
+        - name: PORT
+          value: "8080"
+        - name: DISABLE_PROFILER
+          value: "1"
+        - name: PROFILER_PORT
+          value: "9090"
+        - name: DISABLE_TRACING
+          value: "1"
+        - name: PROFILER_ENABLED
+          value: "false"
+        - name: PRODUCT_CATALOG_SERVICE_ADDR
+          value: "productcatalogservice:3550"
+        - name: DISABLE_PROFILER
+          value: "1"
         readinessProbe:
           periodSeconds: 5
           grpc:
@@ -234,13 +261,6 @@ spec:
           periodSeconds: 5
           grpc:
             port: 8080
-        env:
-        - name: PORT
-          value: "8080"
-        - name: PRODUCT_CATALOG_SERVICE_ADDR
-          value: "productcatalogservice:3550"
-        - name: DISABLE_PROFILER
-          value: "1"
         resources:
           requests:
             cpu: 100m
@@ -263,6 +283,9 @@ spec:
   - name: grpc
     port: 8080
     targetPort: 8080
+  - name: http-metrics
+    port: 9090
+    targetPort: 9090
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -580,6 +603,7 @@ spec:
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "7070"
+        prometheus.io/path: "/metrics"
     spec:
       serviceAccountName: cartservice
       terminationGracePeriodSeconds: 5
@@ -815,6 +839,7 @@ spec:
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "7000"
+        prometheus.io/path: "/metrics"
     spec:
       serviceAccountName: currencyservice
       terminationGracePeriodSeconds: 5
@@ -892,6 +917,7 @@ spec:
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "50051"
+        prometheus.io/path: "/metrics"
     spec:
       serviceAccountName: shippingservice
       securityContext:
