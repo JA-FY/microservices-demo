@@ -19,6 +19,7 @@ import random
 import time
 import traceback
 from concurrent import futures
+from prometheus_client import start_http_server
 
 import googlecloudprofiler
 from google.auth.exceptions import DefaultCredentialsError
@@ -122,7 +123,14 @@ if __name__ == "__main__":
     except (KeyError, DefaultCredentialsError):
         logger.info("Tracing disabled.")
     except Exception as e:
-        logger.warn(f"Exception on Cloud Trace setup: {traceback.format_exc()}, tracing disabled.") 
+        logger.warn(f"Exception on Cloud Trace setup: {traceback.format_exc()}, tracing disabled.")
+
+    try:
+        metrics_port = int(os.environ.get('PROFILER_PORT', '9090'))
+        start_http_server(metrics_port)
+        logger.info(f"started prometheus metrics server on port {metrics_port}")
+    except Exception as e:
+        logger.warn(f"failed to start prometheus metrics server: {e}")
 
     port = os.environ.get('PORT', "8080")
     catalog_addr = os.environ.get('PRODUCT_CATALOG_SERVICE_ADDR', '')
