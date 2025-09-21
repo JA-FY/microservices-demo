@@ -17,13 +17,17 @@ package main
 import (
 	"fmt"
 	"net"
+  "net/http"
+  "github.com/grpc-ecosystem/go-grpc-prometheus"
+  "github.com/prometheus/client_golang/prometheus/promhttp"
+  "github.com/sirupsen/logrus"
+  "go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+  "google.golang.org/grpc"
 	"os"
 	"time"
 
 	"cloud.google.com/go/profiler"
-	"github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
@@ -68,6 +72,20 @@ func main() {
 		log.Info("Profiling disabled.")
 	}
 
+
+	go func() {
+        metricsPort := os.Getenv("PROFILER_PORT")
+        if metricsPort == "" {
+            metricsPort = "9090"
+        }
+        log.Infof("starting metrics server at :%s", metricsPort)
+        http.Handle("/metrics", promhttp.Handler())
+        if err := http.ListenAndServe(":"+metricsPort, nil); err != nil {
+            log.Fatalf("failed to start metrics server: %v", err)
+        }
+    }()
+
+
 	port := defaultPort
 	if value, ok := os.LookupEnv("PORT"); ok {
 		port = value
@@ -82,7 +100,20 @@ func main() {
 	var srv *grpc.Server
 	if os.Getenv("DISABLE_STATS") == "" {
 		log.Info("Stats enabled, but temporarily unavailable")
-		srv = grpc.NewServer()
+		// srv = grpc.NewServer()
+    srv = grpc.NewServer(
+      grpc.ChainUnaryInterceptor(
+        otelgrpc.UnaryServerInterceptor(),
+        grpc_prometheus.UnaryServerInterceptor,
+    ),
+    grpc.ChainStreamInterceptor(
+        otelgrpc.StreamServerInterceptor(),
+        grpc_prometheus.StreamServerInterceptor,
+    ),
+  )
+
+  grpc_prometheus.Register(srv)
+
 	} else {
 		log.Info("Stats disabled.")
 		srv = grpc.NewServer()

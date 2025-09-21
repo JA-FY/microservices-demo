@@ -906,6 +906,10 @@ metadata:
   name: shippingservice
   labels:
     app: shippingservice
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "50051"
+    prometheus.io/path: "/metrics"
 spec:
   selector:
     matchLabels:
@@ -914,10 +918,6 @@ spec:
     metadata:
       labels:
         app: shippingservice
-      annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "50051"
-        prometheus.io/path: "/metrics"
     spec:
       serviceAccountName: shippingservice
       securityContext:
@@ -934,14 +934,26 @@ spec:
               - ALL
           privileged: false
           readOnlyRootFilesystem: true
-        image: us-central1-docker.pkg.dev/google-samples/microservices-demo/shippingservice:v0.10.3
+          #image: us-central1-docker.pkg.dev/google-samples/microservices-demo/shippingservice:v0.10.3
+        image: local/shippingservice:custom
         ports:
         - containerPort: 50051
+          name: grpc
+        - containerPort: 9090
+          name: http-metrics
         env:
         - name: PORT
           value: "50051"
         - name: DISABLE_PROFILER
           value: "1"
+        - name: DISABLE_PROFILER
+          value: "1"
+        - name: PROFILER_PORT
+          value: "9090"
+        - name: DISABLE_TRACING
+          value: "1"
+        - name: PROFILER_ENABLED
+          value: "false"
         readinessProbe:
           periodSeconds: 5
           grpc:
@@ -969,8 +981,11 @@ spec:
     app: shippingservice
   ports:
   - name: grpc
-    port: 50051
-    targetPort: 50051
+    port: 5050
+    targetPort: 5050
+  - name: http-metrics
+    port: 9090
+    targetPort: 9090
 ---
 apiVersion: v1
 kind: ServiceAccount
