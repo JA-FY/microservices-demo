@@ -17,6 +17,7 @@
 'use strict';
 
 const logger = require('./logger')
+const promClient = require('prom-client');
 
 if (process.env.DISABLE_PROFILER) {
   logger.info("Profiler disabled.")
@@ -66,6 +67,20 @@ if (process.env.ENABLE_TRACING == "1") {
 
 const path = require('path');
 const HipsterShopServer = require('./server');
+
+const metricsServer = require('express')();
+const metricsPort = process.env.METRICS_PORT || 9090;
+metricsServer.get('/metrics', async (req, res) => {
+  try {
+    res.set('Content-Type', promClient.register.contentType);
+    res.end(await promClient.register.metrics());
+  } catch (ex) {
+    res.status(500).end(ex);
+  }
+});
+metricsServer.listen(metricsPort, () => {
+  logger.info(`Metrics server listening on port ${metricsPort}`);
+});
 
 const PORT = process.env['PORT'];
 const PROTO_PATH = path.join(__dirname, '/proto/');
