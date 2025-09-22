@@ -1,15 +1,15 @@
 apiVersion: chaos-mesh.org/v1alpha1
 kind: NetworkChaos
 metadata:
-  name: payment-network-delay
+  name: productcatalog-latency
   namespace: default
 spec:
   selector:
     labelSelectors:
-      app: paymentservice
+      app: productcatalogservice
   mode: all
   action: delay
   duration: '5m'
   delay:
-    latency: '200ms'
+    latency: '700ms'
   direction: to
