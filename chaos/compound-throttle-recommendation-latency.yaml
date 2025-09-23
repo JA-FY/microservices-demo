@@ -1,0 +1,15 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: compound-recommendation-latency
+  namespace: default
+spec:
+  mode: all
+  selector:
+    labelSelectors:
+      app: recommendationservice
+  action: delay
+  direction: to
+  delay:
+    latency: '300ms'
+  duration: '15m'

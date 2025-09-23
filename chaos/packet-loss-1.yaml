@@ -1,0 +1,15 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: checkout-packet-loss
+  namespace: default
+spec:
+  selector:
+    labelSelectors:
+      app: checkoutservice
+  mode: all
+  action: loss
+  direction: to
+  loss:
+    loss: '10'
+  duration: '10m'

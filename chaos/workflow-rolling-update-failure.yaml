@@ -1,0 +1,53 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: Workflow
+metadata:
+  name: faulty-rolling-update-frontend
+spec:
+  entry: start
+  templates:
+    - name: start
+      templateType: Parallel
+      deadline: 15m
+      children:
+        - pod-cycling
+        - network-instability
+    - name: pod-cycling
+      templateType: Serial
+      deadline: 15m
+      children:
+        - kill-one
+        - wait
+        - kill-two
+    - name: kill-one
+      templateType: PodChaos
+      deadline: 1m
+      podChaos:
+        action: pod-kill
+        mode: one
+        selector:
+          labelSelectors:
+            app: frontend
+    - name: wait
+      templateType: Suspend
+      duration: '2m'
+    - name: kill-two
+      templateType: PodChaos
+      deadline: 1m
+      podChaos:
+        action: pod-kill
+        mode: one
+        selector:
+          labelSelectors:
+            app: frontend
+    - name: network-instability
+      templateType: NetworkChaos
+      deadline: 15m
+      networkChaos:
+        action: loss
+        mode: one
+        selector:
+          labelSelectors:
+            app: frontend
+        direction: to
+        loss:
+          loss: '5'

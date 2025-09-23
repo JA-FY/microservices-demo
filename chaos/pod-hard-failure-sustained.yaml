@@ -1,0 +1,17 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: Schedule
+metadata:
+  name: recommendation-pod-failure-scheduled
+spec:
+  schedule: '*/10 * * * *'
+  startingDeadlineSeconds: 10
+  concurrencyPolicy: Forbid
+  historyLimit: 2
+  type: PodChaos
+  podChaos:
+    selector:
+      labelSelectors:
+        app: recommendationservice
+    mode: one
+    action: pod-failure
+    duration: '2m'

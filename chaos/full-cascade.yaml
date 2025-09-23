@@ -1,0 +1,62 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: Workflow
+metadata:
+  name: full-dependency-cascade
+spec:
+  entry: start-cascade
+  templates:
+    - name: start-cascade
+      templateType: Serial
+      deadline: 15m
+      children:
+        - kill-redis
+        - wait-a-bit
+        - stress-consumers
+
+    - name: kill-redis
+      templateType: PodChaos
+      deadline: 2m
+      podChaos:
+        selector:
+          labelSelectors:
+            app: redis-cart
+        action: pod-kill
+        mode: one
+
+    - name: wait-a-bit
+      templateType: Suspend
+      duration: '30s'
+
+    - name: stress-consumers
+      templateType: Parallel
+      deadline: 5m
+      children:
+        - cartservice-latency
+        - frontend-cpu-load
+
+    - name: cartservice-latency
+      templateType: NetworkChaos
+      deadline: 5m
+      networkChaos:
+        selector:
+          labelSelectors:
+            app: cartservice
+        action: delay
+        mode: one
+        direction: to
+        delay:
+          latency: '250ms'
+
+    - name: frontend-cpu-load
+      templateType: StressChaos
+      deadline: 5m
+      stressChaos:
+        selector:
+          labelSelectors:
+            app: frontend
+        action: stress
+        mode: one
+        stressors:
+          cpu:
+            workers: 1
+            load: 60

@@ -1,0 +1,14 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: DNSChaos
+metadata:
+  name: dns-failure-checkout-to-shipping
+  namespace: default
+spec:
+  action: error
+  mode: one
+  selector:
+    labelSelectors:
+      app: checkoutservice
+  patterns:
+    - shippingservice.default.svc.cluster.local
+  duration: '10m'

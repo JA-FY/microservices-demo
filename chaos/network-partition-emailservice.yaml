@@ -1,0 +1,13 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: partition-emailservice
+  namespace: default
+spec:
+  action: partition
+  mode: one
+  selector:
+    labelSelectors:
+      app: emailservice
+  direction: both
+  duration: '10m'

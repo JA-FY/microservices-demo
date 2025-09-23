@@ -1,0 +1,17 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: HTTPChaos
+metadata:
+  name: http-abort-on-ads
+  namespace: default
+spec:
+  mode: all
+  selector:
+    labelSelectors:
+      app: adservice
+  port: 9555
+  target: Request
+  abort: true
+  percent: 50
+  path: '/*'
+  method: 'GET'
+  duration: '10m'
