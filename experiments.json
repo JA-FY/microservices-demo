@@ -1,0 +1,60 @@
+{
+  "experiments": [
+    {
+      "id": "T1_DNS_FAILURE_SUSTAINED",
+      "description": "Tier 1: Sustained DNS failure for checkoutservice targeting shippingservice.",
+      "tier": 1,
+      "files": ["dns-failure-checkout-shipping.yaml"],
+      "duration_seconds": 600
+    },
+    {
+      "id": "T2_THROTTLED_DEPENDENCY_RUN_1",
+      "description": "Tier 2: Compound fault throttling the recommendation service with both CPU and Latency.",
+      "tier": 2,
+      "files": [
+        "compound-throttle-recommendation-cpu.yaml",
+        "compound-throttle-recommendation-latency.yaml"
+      ],
+      "duration_seconds": 900
+    },
+    {
+      "id": "T3_FAULTY_ROLLING_UPDATE_RUN_1",
+      "description": "Tier 3: Workflow simulating a faulty rolling update on the frontend.",
+      "tier": 3,
+      "files": ["workflow-rolling-update-failure.yaml"],
+      "duration_seconds": 900
+    },
+    {
+      "id": "T2.5_WIDE_AREA_FLAPPING_CHAOS",
+      "description": "Tier 2.5: Combines pod-flapping on one service with simultaneous network issues on others.",
+      "tier": 2.5,
+      "files": [
+        "pod-failure-sustained.yaml",
+        "network-delay.yaml",
+        "network-partition-emailservice.yaml"
+      ],
+      "duration_seconds": 3600
+    },
+    {
+      "id": "T1_POD_OUTAGE_SCHEDULED",
+      "description": "Tier 1: Simulates a 2-minute outage on recommendationservice every 10m.",
+      "tier": 1,
+      "files": ["pod-hard-failure-sustained.yaml"],
+      "duration_seconds": 3600
+    },
+    {
+      "id": "T1_IO_LATENCY_REDIS",
+      "description": "Tier 1: Simulates slow disk I/O on the redis-cart database.",
+      "tier": 1,
+      "files": ["io-latency-redis.yaml"],
+      "duration_seconds": 900
+    },
+    {
+      "id": "T2_HTTP_ABORT_ADSERVICE",
+      "description": "Tier 2: Simulates application-level failures where adservice aborts requests.",
+      "tier": 2,
+      "files": ["http-abort-adservice.yaml"],
+      "duration_seconds": 900
+    }
+  ]
+}

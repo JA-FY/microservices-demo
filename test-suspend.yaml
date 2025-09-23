@@ -1,0 +1,10 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: Workflow
+metadata:
+  name: test-suspend-workflow
+spec:
+  entry: test-entry
+  templates:
+    - name: test-entry
+      templateType: Suspend
+      duration: '5s'

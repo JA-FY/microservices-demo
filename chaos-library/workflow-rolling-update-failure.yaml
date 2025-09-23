@@ -29,7 +29,8 @@ spec:
             app: frontend
     - name: wait
       templateType: Suspend
-      duration: '2m'
+      suspend:
+        duration: '2m'
     - name: kill-two
       templateType: PodChaos
       deadline: 1m
