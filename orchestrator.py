@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 CHAOS_LIBRARY_DIR = Path("chaos-library")
-EXPERIMENT_MANIFEST = Path("experiments.json")
+EXPERIMENT_MANIFEST = Path("experiments-resume.json")
 CHAOS_LOG_FILE = Path("chaos_log.json")
 
 

@@ -1,0 +1,86 @@
+[
+  {
+    "experiment_id": "T1_DNS_FAILURE_SUSTAINED",
+    "description": "Tier 1: Sustained DNS failure for checkoutservice targeting shippingservice.",
+    "tier": 1,
+    "chaos_files": [
+      "dns-failure-checkout-shipping.yaml"
+    ],
+    "start_time_utc": "2025-09-23T19:36:40.911580+00:00",
+    "end_time_utc": "2025-09-23T19:46:40.936627+00:00",
+    "duration_seconds": 600,
+    "status": "COMPLETED"
+  },
+  {
+    "experiment_id": "T2_THROTTLED_DEPENDENCY_RUN_1",
+    "description": "Tier 2: Compound fault throttling the recommendation service with both CPU and Latency.",
+    "tier": 2,
+    "chaos_files": [
+      "compound-throttle-recommendation-cpu.yaml"
+    ],
+    "start_time_utc": "2025-09-23T19:46:41.121909+00:00",
+    "end_time_utc": "2025-09-23T20:01:41.207837+00:00",
+    "duration_seconds": 900,
+    "status": "COMPLETED"
+  },
+  {
+    "experiment_id": "T3_FAULTY_ROLLING_UPDATE_RUN_1",
+    "description": "Tier 3: Workflow simulating a faulty rolling update on the frontend.",
+    "tier": 3,
+    "chaos_files": [
+      "workflow-rolling-update-failure.yaml"
+    ],
+    "start_time_utc": "2025-09-23T20:01:41.415681+00:00",
+    "end_time_utc": "2025-09-23T20:16:41.494794+00:00",
+    "duration_seconds": 900,
+    "status": "COMPLETED"
+  },
+  {
+    "experiment_id": "T2.5_WIDE_AREA_FLAPPING_CHAOS",
+    "description": "Tier 2.5: Combines pod-flapping on one service with simultaneous network issues on others.",
+    "tier": 2.5,
+    "chaos_files": [
+      "pod-failure-sustained.yaml"
+    ],
+    "start_time_utc": "2025-09-23T20:16:41.585641+00:00",
+    "end_time_utc": "2025-09-23T21:16:41.777589+00:00",
+    "duration_seconds": 3600,
+    "status": "COMPLETED"
+  },
+  {
+    "experiment_id": "T1_POD_OUTAGE_SCHEDULED",
+    "description": "Tier 1: Simulates a 2-minute outage on recommendationservice every 10m.",
+    "tier": 1,
+    "chaos_files": [
+      "pod-hard-failure-sustained.yaml"
+    ],
+    "start_time_utc": "2025-09-23T21:16:42.022369+00:00",
+    "end_time_utc": "2025-09-23T22:16:42.181187+00:00",
+    "duration_seconds": 3600,
+    "status": "COMPLETED"
+  },
+  {
+    "experiment_id": "T2_HTTP_ABORT_ADSERVICE",
+    "description": "Tier 2: Simulates application-level failures where adservice aborts requests.",
+    "tier": 2,
+    "chaos_files": [
+      "http-abort-adservice.yaml"
+    ],
+    "start_time_utc": "2025-09-23T22:43:40.272044+00:00",
+    "end_time_utc": "2025-09-23T22:43:40.375471+00:00",
+    "duration_seconds": 900,
+    "status": "COMPLETED"
+  },
+  {
+    "experiment_id": "T2_HTTP_ABORT_ADSERVICE",
+    "description": "Tier 2: Simulates application-level failures where adservice aborts requests.",
+    "tier": 2,
+    "chaos_files": [
+      "http-abort-adservice.yaml"
+    ],
+    "start_time_utc": "2025-09-23T22:46:26.014488+00:00",
+    "end_time_utc": "2025-09-23T22:46:26.117656+00:00",
+    "duration_seconds": 900,
+    "status": "COMPLETED"
+  }
+]

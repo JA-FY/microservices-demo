@@ -1,0 +1,11 @@
+{
+  "experiments": [
+    {
+      "id": "T2_HTTP_ABORT_ADSERVICE",
+      "description": "Tier 2: Simulates application-level failures where adservice aborts requests.",
+      "tier": 2,
+      "files": ["http-abort-adservice.yaml"],
+      "duration_seconds": 900
+    }
+  ]
+}

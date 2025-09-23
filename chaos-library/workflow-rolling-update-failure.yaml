@@ -16,7 +16,7 @@ spec:
       deadline: 15m
       children:
         - kill-one
-        - wait
+        - wait-using-dns-trick
         - kill-two
     - name: kill-one
       templateType: PodChaos
@@ -27,10 +27,18 @@ spec:
         selector:
           labelSelectors:
             app: frontend
-    - name: wait
-      templateType: Suspend
-      suspend:
-        duration: '2m'
+    - name: wait-using-dns-trick
+      templateType: DNSChaos
+      deadline: 2m
+      dnsChaos:
+        action: error
+
+        mode: one
+        patterns:
+          - this-is-a-harmless-placeholder.com
+        selector:
+          labelSelectors:
+            app: frontend
     - name: kill-two
       templateType: PodChaos
       deadline: 1m

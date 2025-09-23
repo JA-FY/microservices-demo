@@ -12,8 +12,7 @@
       "description": "Tier 2: Compound fault throttling the recommendation service with both CPU and Latency.",
       "tier": 2,
       "files": [
-        "compound-throttle-recommendation-cpu.yaml",
-        "compound-throttle-recommendation-latency.yaml"
+        "compound-throttle-recommendation-cpu.yaml"
       ],
       "duration_seconds": 900
     },
@@ -29,9 +28,7 @@
       "description": "Tier 2.5: Combines pod-flapping on one service with simultaneous network issues on others.",
       "tier": 2.5,
       "files": [
-        "pod-failure-sustained.yaml",
-        "network-delay.yaml",
-        "network-partition-emailservice.yaml"
+        "pod-failure-sustained.yaml"
       ],
       "duration_seconds": 3600
     },

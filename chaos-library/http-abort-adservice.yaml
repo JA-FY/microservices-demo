@@ -10,8 +10,8 @@ spec:
       app: adservice
   port: 9555
   target: Request
-  abort: true
-  percent: 50
+  abort:
+    percent: 50
   path: '/*'
   method: 'GET'
   duration: '10m'
