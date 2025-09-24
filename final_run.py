@@ -109,47 +109,41 @@ def train(max_snap_idx):
     return total_loss / num_batches if num_batches > 0 else 0
 
 @torch.no_grad()
-def evaluate(start_snap_idx, end_snap_idx):
+
+@torch.no_grad()
+def evaluate(start_snap_idx, end_snap_idx, save_predictions_as=None):
     model.eval()
     model.reset_memory()
     all_preds, all_true = [], []
 
     print(f"\n  Building memory state up to snapshot {start_snap_idx}...")
-
-    train_event_end_idx = torch.searchsorted(data.t, data.t_nodes[start_snap_idx-1]).item()
+    train_event_end_idx = torch.searchsorted(data.t, data.t_nodes[start_snap_idx-1]).item() if start_snap_idx > 0 else 0
     for i in range(0, train_event_end_idx, BATCH_SIZE):
-        src = data.src[i:i+BATCH_SIZE].to(DEVICE)
-        dst = data.dst[i:i+BATCH_SIZE].to(DEVICE)
-        msg = data.msg[i:i+BATCH_SIZE].to(DEVICE)
+        src, dst, msg = data.src[i:i+BATCH_SIZE].to(DEVICE), data.dst[i:i+BATCH_SIZE].to(DEVICE), data.msg[i:i+BATCH_SIZE].to(DEVICE)
         model.update_state(src, dst, msg)
 
     print(f"  Evaluating from snapshot {start_snap_idx} to {end_snap_idx}...")
-
     for i in range(start_snap_idx, end_snap_idx):
         all_nodes = torch.arange(num_nodes)
-        node_features = data.x[i, all_nodes].to(DEVICE)
-        labels = data.y[i, all_nodes]
-
-
+        node_features, labels = data.x[i, all_nodes].to(DEVICE), data.y[i, all_nodes]
         pred_logits = model(all_nodes.to(DEVICE), node_features)
         preds_binary = (torch.sigmoid(pred_logits).squeeze().cpu() > 0.5).long()
-
         all_preds.append(preds_binary.numpy())
         all_true.append(labels.numpy())
-
-
-        t_start = data.t_nodes[i-1] if i > 0 else 0
-        t_end = data.t_nodes[i]
+        t_start = data.t_nodes[i-1] if i > 0 else 0; t_end = data.t_nodes[i]
         events_mask = (data.t >= t_start) & (data.t < t_end)
-        src = data.src[events_mask].to(DEVICE)
-        dst = data.dst[events_mask].to(DEVICE)
-        msg = data.msg[events_mask].to(DEVICE)
-        if src.numel() > 0:
-            model.update_state(src, dst, msg)
+        src, dst, msg = data.src[events_mask].to(DEVICE), data.dst[events_mask].to(DEVICE), data.msg[events_mask].to(DEVICE)
+        if src.numel() > 0: model.update_state(src, dst, msg)
 
     if not all_preds: return "No data in this split."
     all_preds = np.concatenate(all_preds)
     all_true = np.concatenate(all_true)
+
+    if save_predictions_as:
+        print(f"  Saving predictions to {save_predictions_as}...")
+        results_df = pd.DataFrame({'predictions': all_preds, 'true_labels': all_true})
+        results_df.to_csv(save_predictions_as, index=False)
+
     return classification_report(all_true, all_preds, target_names=['Healthy', 'Faulty'], zero_division=0)
 
 for epoch in range(1, EPOCHS + 1):
@@ -157,9 +151,10 @@ for epoch in range(1, EPOCHS + 1):
     print(f"Epoch {epoch:02d}, Loss: {loss:.4f}")
 
 print("\n--- Validation Set Evaluation ---")
-val_report = evaluate(train_snap_idx, val_snap_idx)
+val_report = evaluate(train_snap_idx, val_snap_idx, save_predictions_as='validation_predictions.csv')
 print(val_report)
 
 print("\n--- Test Set Evaluation ---")
 test_report = evaluate(val_snap_idx, num_snapshots)
 print(test_report)
+
